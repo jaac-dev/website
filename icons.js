@@ -36,16 +36,21 @@ const tasks = ICONS.map(([name, url]) =>
     .catch(() => [name, null])
     .then(([name, svg]) => {
       if (!svg) return
-      return fs.writeFile(
-        `src/icons/${name}.vue`,
-        `
+      return fs
+        .writeFile(
+          `src/icons/${name}.vue`,
+          `
 <script setup lang="ts"></script>  
 <template>
   ${svg}
 </template>
       `.trim(),
-      )
+        )
+        .then(() => name)
     }),
 )
 
-Promise.all(tasks)
+Promise.all(tasks).then((names) => {
+  const data = names.map((name) => `export { default as ${name} } from './${name}.vue'`).join('\n')
+  return fs.writeFile('src/icons/index.ts', data)
+})
